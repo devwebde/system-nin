@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nintendo Sales System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #fff;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            position: relative;
+        }
+
+        li button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #FF6347;
+        }
+
+        li button:hover {
+            background-color: #FF4500;
+        }
+
+        #total {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nintendo Sales System</h1>
+    <form id="salesForm">
+        <label for="playerCount">Number of Players:</label>
+        <select id="playerCount" required>
+            <option value="1">1 Player</option>
+            <option value="2">2 Players</option>
+        </select>
+        
+        <label for="gameCount">Number of Games:</label>
+        <select id="gameCount" required>
+            <option value="1">1 Game</option>
+            <option value="3">3 Games</option>
+            <option value="5">5 Games</option>
+        </select>
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" min="1" value="1" required>
+        
+        <button type="submit">Add Sale</button>
+    </form>
+
+    <h2>Sales Records</h2>
+    <ul id="salesList"></ul>
+    <div id="total">Total Sales: 0 RM</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const salesForm = document.getElementById('salesForm');
+            const salesList = document.getElementById('salesList');
+            const totalDisplay = document.getElementById('total');
+
+            let salesData = JSON.parse(localStorage.getItem('salesData')) || [];
+
+            const updateSalesList = () => {
+                salesList.innerHTML = '';
+                let total = 0;
+                salesData.forEach((sale, index) => {
+                    const li = document.createElement('li');
+                    li.textContent = `${sale.players} Player(s), ${sale.games} Game(s), Quantity: ${sale.quantity} - ${sale.price} RM`;
+                    total += sale.price;
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = () => {
+                        salesData.splice(index, 1);
+                        localStorage.setItem('salesData', JSON.stringify(salesData));
+                        updateSalesList();
+                    };
+                    li.appendChild(deleteButton);
+                    salesList.appendChild(li);
+                });
+                totalDisplay.textContent = `Total Sales: ${total} RM`;
+            };
+
+            const calculatePrice = (players, games, quantity) => {
+                let price = 0;
+                if (players == 1) {
+                    if (games == 1) price = 10;
+                    if (games == 3) price = 25;
+                    if (games == 5) price = 40;
+                } else if (players == 2) {
+                    if (games == 1) price = 15;
+                    if (games == 3) price = 40;
+                    if (games == 5) price = 65;
+                }
+                return price * quantity;
+            };
+
+            salesForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const players = document.getElementById('playerCount').value;
+                const games = document.getElementById('gameCount').value;
+                const quantity = document.getElementById('quantity').value;
+                const price = calculatePrice(players, games, quantity);
+
+                const newSale = { players, games, quantity, price };
+                salesData.push(newSale);
+                localStorage.setItem('salesData', JSON.stringify(salesData));
+                updateSalesList();
+            });
+
+            updateSalesList();
+        });
+    </script>
+</body>
+</html>
